@@ -1,0 +1,20 @@
+ - name: test pilot
+    host: local host
+
+    vars:
+      template:
+        - 'sh int'
+        - 'sh run'
+        - 'sh ip int bri'
+     hostname: "foo"
+     myaddresses: ['192.168.3.1', '10.10.10.1']
+
+     tasks:
+  - name: configure device with config
+  cli_config:
+    config: "{{ lookup('template', 'basic/config.j2') }}"
+    - name: multiline config
+  cli_config:
+    config: |
+      hostname foo
+      feature nxapi
