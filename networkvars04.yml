@@ -1,0 +1,22 @@
+---
+- name: Network Agnostic Playbook 
+  hosts: aristaswitchessecure
+  gather_facts: no
+  
+  vars:
+    ansible_ssh_pass: alta3   # hide this with ansible-vault if you like
+  
+  tasks: 
+  - name: CONFIGURE DNS
+    cli_config: 
+      config: ansible_net_hostname foo 
+
+  - name: CHECK CONFIGURATION 
+    cli_command: 
+      command: show run | i ansible_net_hostname 
+    register: results 
+
+  - name: PRINT OUTPUT TO SCREEN 
+    debug: 
+      var: results.stdout
+
