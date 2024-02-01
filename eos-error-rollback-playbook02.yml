@@ -1,0 +1,48 @@
+---
+- name: Arista playbook that triggers failure
+  hosts: arista_switches
+  connection: network_cli
+  become: yes
+  become_method: enable
+  gather_facts: no
+
+  vars:
+    secret_password: !vault  |
+      $ANSIBLE_VAULT;1.1;AES256
+      66306330366365353264323965393838333465663361316262383137336534343163626164366130
+      3165333330336537333131386433366330363239623438390a383939316435373833653935356634
+      30316337653338623733396131623130373366366438383632326238353331633431656336303561
+      3332626336616665350a373166306337376466363839653861656136613231363239613766393662
+      3163
+    
+          ansible-vault encrypt_string --vault-id my_vault_id 'alta3' --name 'my_password'
+
+          ansible_ssh_pass: alta3   # this should be encrypted with Ansible Vault
+
+  tasks:
+
+          - name: Back up current running config
+            arista.eos.eos_config:
+              backup: yes
+            register: results
+            when: ansible_network_os == 'eos'
+
+          - name: Debug the current switch running config
+            debug:
+                    var: results
+                    verbosity: 1    # we no longer need this task to run every time
+            
+          # A block is what we want to "try" to do
+          - name: Block of change modifications to our switch
+            block:
+                    - name: configure the login banner
+                      arista.eos.eos_banner:
+                        banner: login
+                        text: |
+                          this is my login banner
+                          that contains a multiline
+                          string
+                          if this works correctly
+                          we should never see the banner because the
+                          config will be rolled back by our rescue
+                        state: present
